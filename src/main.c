@@ -1,15 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <float.h>
+// #include <float.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-#define JPEG_INPUT
-#define IMAGE "img/nisa.jpg"
-#define OUTPUT_IMAGE "output/nisa"
+#define INTERMEDIATE_CHANNELS 4
+
+// #define IMAGE "img/nisa.jpg"
+// #define OUTPUT_IMAGE "output/nisa"
+#define IMAGE "img/alpaca.png"
+#define OUTPUT_IMAGE "output/alpaca"
+// #define IMAGE "img/otter.jpg"
+// #define OUTPUT_IMAGE "output/otter"
 
 // #define IMAGE "img/redblue.png"
 // #define OUTPUT_IMAGE "output/redblue"
@@ -24,9 +29,7 @@ typedef struct {
     u8 R;
     u8 B;
     u8 G;
-#ifndef JPEG_INPUT
     u8 A;
-#endif
 } Color;
 typedef float (*pixel_evaluator) (Color);
 
@@ -113,23 +116,23 @@ void sort_image_horizontally(Color *img, int width, int height, pixel_evaluator 
 
 int main() {
     int width, height, channels;
-    Color *img = (Color*)stbi_load(IMAGE, &width, &height, &channels, 0);
+    Color *img = (Color*)stbi_load(IMAGE, &width, &height, &channels, INTERMEDIATE_CHANNELS);
     if (img == NULL) {
         fprintf(stderr,"Error loading the image\n");
         exit(1);
     }
-    printf("width %i height %i channels %i.\n", width, height, channels);
+    printf("width %i height %i channels %i.\n", width, height, channels);    
 
-    // sort_image_vertically(img, width, height, &hue_of_pixel);
-    sort_image_vertically(img, width, height, &luminance_of_pixel);
+    sort_image_horizontally(img, width, height, &hue_of_pixel);
+    // sort_image_vertically(img, width, height, &luminance_of_pixel);
 
-    if (!stbi_write_jpg(OUTPUT_IMAGE ".jpg", width, height, channels, img, 100)) {
+    if (!stbi_write_jpg(OUTPUT_IMAGE ".jpg", width, height, INTERMEDIATE_CHANNELS, img, 100)) {
         fprintf(stderr, "Could not create image %s.jpg\n", OUTPUT_IMAGE);
     }
-    if (!stbi_write_bmp(OUTPUT_IMAGE ".bmp", width, height, channels, img)) {
+    if (!stbi_write_bmp(OUTPUT_IMAGE ".bmp", width, height, INTERMEDIATE_CHANNELS, img)) {
         fprintf(stderr, "Could not create image %s.bmp\n", OUTPUT_IMAGE);
     }
-    if (!stbi_write_png(OUTPUT_IMAGE ".png", width, height, channels, img, width * channels)) {
+    if (!stbi_write_png(OUTPUT_IMAGE ".png", width, height, INTERMEDIATE_CHANNELS, img, width * INTERMEDIATE_CHANNELS)) {
         fprintf(stderr, "Could not create image %s.png\n", OUTPUT_IMAGE);
     }
     stbi_image_free(img);
