@@ -1,24 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <float.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-//#define IMAGE "img/nisa.jpg"
-//#define OUTPUT_IMAGE "output/nisa"
-#define IMAGE "img/otter.png"
-#define OUTPUT_IMAGE "output/otter"
+#define JPEG_INPUT
+#define IMAGE "img/nisa.jpg"
+#define OUTPUT_IMAGE "output/nisa"
 
-#define MAX(X,Y) (X>Y) ? X:Y
-#define MIN(X,Y) (X<Y) ? X:Y
+// #define IMAGE "img/redblue.png"
+// #define OUTPUT_IMAGE "output/redblue"
+// #define IMAGE "img/heart.png"
+// #define OUTPUT_IMAGE "output/heart"
+
+#define MAX(X,Y) (((X)>(Y)) ? (X):(Y))
+#define MIN(X,Y) (((X)<(Y)) ? (X):(Y))
 
 typedef unsigned char u8;
 typedef struct {
     u8 R;
     u8 B;
     u8 G;
+#ifndef JPEG_INPUT
+    u8 A;
+#endif
 } Color;
 typedef float (*pixel_evaluator) (Color);
 
@@ -34,10 +42,32 @@ float hue_of_pixel(Color pixel) {
     
     float max = MAX(R, MAX(G, B));
     float min = MIN(R, MIN(G, B));
+    
+    if (max == min) max++; //TODO fucked
 
-    if(max == R)        return (G - B) / (max - min);
-    else if(max == G)   return 2.0 + (B - R) / (max - min);
+    if (max == R)       return (G - B) / (max - min);
+    else if (max == G)  return 2.0 + (B - R) / (max - min);
     else                return 4.0 + (R - G) / (max - min);
+    // if (R >= G && G >= B) {
+    //     if (R == B) return (G - B) / FLT_EPSILON;
+    //     return (G - B) / (R - B);
+    // } else if (G > R && R >= B) {
+    //     if (G == B) return 2.0 - (R - B) / FLT_EPSILON;
+    //     return 2.0 - (R - B) / (G - B);
+    // } else if (G >= B && B > R) {
+    //     if (G == R) return 2.0 + (B - R) / FLT_EPSILON;
+    //     return 2.0 + (B - R) / (G - R);
+    // } else if (B > G && G > R) {
+    //     if (G == R) return 4.0 - (G - R) / FLT_EPSILON;
+    //     return 4.0 - (G - R) / (B - R);
+    // } else if (B > R && R >= G) {
+    //     if (B == G) return 4.0 + (R - G) / FLT_EPSILON;
+    //     return 4.0 + (R - G) / (B - G);
+    // } else {
+    // // } else if (R >= B && B > G) {
+    //     if (R == G) return 6.0 - (B - G) / FLT_EPSILON;
+    //     return 6.0 - (B - G) / (R - G);
+    // }
 }
 
 void sort_buffer(Color *column, int length, pixel_evaluator eval) {
@@ -82,24 +112,25 @@ void sort_image_horizontally(Color *img, int width, int height, pixel_evaluator 
 }
 
 int main() {
-    printf("%zu\n", sizeof(Color));
     int width, height, channels;
     Color *img = (Color*)stbi_load(IMAGE, &width, &height, &channels, 0);
     if (img == NULL) {
         fprintf(stderr,"Error loading the image\n");
         exit(1);
     }
-    //sort_image_vertically(img, width, height, &hue_of_pixel);
-    sort_image_horizontally(img, width, height, &luminance_of_pixel);
+    printf("width %i height %i channels %i.\n", width, height, channels);
+
+    // sort_image_vertically(img, width, height, &hue_of_pixel);
+    sort_image_vertically(img, width, height, &luminance_of_pixel);
 
     if (!stbi_write_jpg(OUTPUT_IMAGE ".jpg", width, height, channels, img, 100)) {
-        fprintf(stderr, "Could not create image %s.jpg", OUTPUT_IMAGE);
+        fprintf(stderr, "Could not create image %s.jpg\n", OUTPUT_IMAGE);
     }
     if (!stbi_write_bmp(OUTPUT_IMAGE ".bmp", width, height, channels, img)) {
-        fprintf(stderr, "Could not create image %s.bmp", OUTPUT_IMAGE);
+        fprintf(stderr, "Could not create image %s.bmp\n", OUTPUT_IMAGE);
     }
     if (!stbi_write_png(OUTPUT_IMAGE ".png", width, height, channels, img, width * channels)) {
-        fprintf(stderr, "Could not create image %s.png", OUTPUT_IMAGE);
+        fprintf(stderr, "Could not create image %s.png\n", OUTPUT_IMAGE);
     }
     stbi_image_free(img);
     return 0;

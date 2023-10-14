@@ -1,2 +1,2 @@
 #!/bin/sh
-bin/imageSort.exe
+bin/imageSort
