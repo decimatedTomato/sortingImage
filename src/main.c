@@ -46,7 +46,7 @@ float hue_of_pixel(Color pixel) {
     float max = MAX(R, MAX(G, B));
     float min = MIN(R, MIN(G, B));
     
-    if (max == min) max++; //TODO fucked
+    if (max == min) max++; //TODO FUCKED
 
     if (max == R)       return (G - B) / (max - min);
     else if (max == G)  return 2.0 + (B - R) / (max - min);
@@ -74,7 +74,7 @@ float hue_of_pixel(Color pixel) {
 }
 
 void sort_buffer(Color *column, int length, pixel_evaluator eval) {
-    // using insertion sort
+    // using insertion sort    
     for (int i = 1; i < length; i++) {
         Color x = column[i];
         int j = i - 1;
@@ -118,7 +118,7 @@ int main() {
     int width, height, channels;
     Color *img = (Color*)stbi_load(IMAGE, &width, &height, &channels, INTERMEDIATE_CHANNELS);
     if (img == NULL) {
-        fprintf(stderr,"Error loading the image\n");
+        fprintf(stderr, "Error loading the image\n");
         exit(1);
     }
     printf("width %i height %i channels %i.\n", width, height, channels);    
